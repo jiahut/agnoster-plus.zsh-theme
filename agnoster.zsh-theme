@@ -37,6 +37,19 @@ CROSS="\u2718"
 LIGHTNING="\u26a1"
 GEAR="\u2699"
 
+
+# Setup powerline style colouring
+POWERLINE_COLOR_BG_GRAY=%K{240}
+POWERLINE_COLOR_BG_LIGHT_GRAY=%K{240}
+POWERLINE_COLOR_BG_WHITE=%K{255}
+
+POWERLINE_COLOR_FG_GRAY=%F{240}
+POWERLINE_COLOR_FG_LIGHT_GRAY=%F{240}
+POWERLINE_COLOR_FG_WHITE=%F{255}
+
+POWERLINE_SEPARATOR=$'\u2b80'
+POWERLINE_R_SEPARATOR=$'\u2b82'
+
 # Begin a segment
 # Takes two arguments, background and foreground. Both can be omitted,
 # rendering default background/foreground.
@@ -125,15 +138,41 @@ prompt_agnoster_main() {
   RETVAL=$?
   CURRENT_BG='NONE'
   prompt_status
-  prompt_context
+  # prompt_context
   prompt_dir
   prompt_git
   prompt_end
 }
 
+
+function rvm_info_for_prompt {
+  if [[ -d ~/.rvm/ ]]; then
+    local ruby_version=$(~/.rvm/bin/rvm-prompt)
+    if [ -n "$ruby_version" ]; then
+      echo "$ruby_version"
+    fi
+  else
+    echo ""
+  fi
+}
+
+
 prompt_agnoster_precmd() {
   vcs_info
-  PROMPT='%{%f%b%k%}$(prompt_agnoster_main) '
+  python-info
+  
+  rvm_split=("${(s/@/)$(rvm_info_for_prompt)}")
+  local powerline_right_version=$rvm_split[1]
+  local powerline_right_gemset=$rvm_split[2]
+  
+  if [ -z $powerline_right_gemset  ]; then
+    RVM_PROMPT=""
+  else
+    RVM_PROMPT=$POWERLINE_COLOR_BG_WHITE$POWERLINE_COLOR_FG_LIGHT_GRAY$powerline_right_version@$POWERLINE_COLOR_BG_WHITE$POWERLINE_COLOR_FG_GRAY$powerline_right_gemset
+  fi
+  PYENV_PROMPT=$POWERLINE_COLOR_BG_WHITE$POWERLINE_COLOR_FG_GRAY$python_info[virtualenv]
+  
+  PROMPT='$RVM_PROMPT$PYENV_PROMPT%{%f%b%k%}$(prompt_agnoster_main) '
 }
 
 prompt_agnoster_setup() {
@@ -148,6 +187,12 @@ prompt_agnoster_setup() {
   zstyle ':vcs_info:*' check-for-changes false
   zstyle ':vcs_info:git*' formats '%b'
   zstyle ':vcs_info:git*' actionformats '%b (%a)'
+  
+  # Set python-info parameters.
+  zstyle ':prezto:module:python:info:virtualenv' format '(%v)'
+
+  zstyle ':prezto:module:ruby' rvm '%r'
+  
 }
 
 prompt_agnoster_setup "$@"
