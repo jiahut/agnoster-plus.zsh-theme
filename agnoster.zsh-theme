@@ -149,7 +149,7 @@ prompt_agnoster_main() {
   RETVAL=$?
   CURRENT_BG='NONE'
   prompt_status
-  prompt_context
+  # prompt_context
   prompt_virtualenv
   prompt_dir
   prompt_git
